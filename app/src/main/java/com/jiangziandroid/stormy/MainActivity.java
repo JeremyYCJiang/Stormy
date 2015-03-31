@@ -5,6 +5,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 
 import com.squareup.okhttp.Call;
+import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
@@ -29,14 +30,29 @@ public class MainActivity extends ActionBarActivity {
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder().url(forecastUrl).build();
         Call call = client.newCall(request);
-        try {
-            Response response = call.execute();
-            if(response.isSuccessful()){
-                Log.v(TAG, response.body().string());
+        //Transfer synchronous to asynchronous
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(Request request, IOException e) {
+
             }
-        } catch (IOException e) {
-            Log.e(TAG, "Exception caught: ", e);
-        }
+
+            @Override
+            public void onResponse(Response response) throws IOException {
+                try {
+                    // execute() is synchronous method, so delete it
+                    // Response response = call.execute();
+                    if(response.isSuccessful()){
+                        Log.v(TAG, response.body().string());
+                    }
+                } catch (IOException e) {
+                    Log.e(TAG, "Exception caught: ", e);
+                }
+            }
+        });
+
+        Log.d(TAG, "Main UI code is running!");
+
     }
 
 }
