@@ -42,8 +42,12 @@ public class MainActivity extends ActionBarActivity {
                 try {
                     // execute() is synchronous method, so delete it
                     // Response response = call.execute();
+                    Log.v(TAG, response.body().string());
                     if(response.isSuccessful()){
-                        Log.v(TAG, response.body().string());
+
+                    }
+                    else {
+                        alertUserAboutError();
                     }
                 } catch (IOException e) {
                     Log.e(TAG, "Exception caught: ", e);
@@ -53,6 +57,11 @@ public class MainActivity extends ActionBarActivity {
 
         Log.d(TAG, "Main UI code is running!");
 
+    }
+
+    private void alertUserAboutError() {
+        AlertDialogFragment dialog = new AlertDialogFragment();
+        dialog.show(getFragmentManager(), "error_dialog");
     }
 
 }
