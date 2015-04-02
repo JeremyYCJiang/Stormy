@@ -91,6 +91,10 @@ public class MainActivity extends ActionBarActivity {
             currentWeather.setHumidity(currently.getDouble("humidity"));
             currentWeather.setPrecipChance(currently.getDouble("precipProbability"));
             currentWeather.setSummary(currently.getString("summary"));
+            currentWeather.setTimeZone(forecast.getString("timezone"));
+            Log.d(TAG, currentWeather.getFormattedTime());
+            Log.d(TAG, String.valueOf(currentWeather.getTemperature()));
+            Log.d(TAG, String.valueOf(currentWeather.getCelsiusTemperature()));
             return currentWeather;
 
             /*
