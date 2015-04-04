@@ -2,10 +2,13 @@ package com.jiangziandroid.stormy;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.ResultReceiver;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.widget.TextView;
@@ -33,6 +36,7 @@ public class MainActivity extends ActionBarActivity{
     protected static final String apiKey = "9131be663489e1f48549c9e550d00b38";
     protected CurrentWeather mCurrentWeather;
     protected GoogleApiClient mGoogleApiClient;
+    protected AddressResultReceiver mResultReceiver;
     protected Location mLastLocation;
     protected double latitude;
     protected double longitude;
@@ -100,6 +104,9 @@ public class MainActivity extends ActionBarActivity{
                         // in rare cases when a location is not available.
                         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
                         if (mLastLocation != null) {
+                            mResultReceiver = new AddressResultReceiver(new Handler());
+                            startIntentService();
+                            Toast.makeText(MainActivity.this, mResultReceiver.getAddressOutput(), Toast.LENGTH_LONG).show();
                             latitude = mLastLocation.getLatitude();
                             longitude = mLastLocation.getLongitude();
                             Toast.makeText(MainActivity.this, "mGoogleApiClient Connected.", Toast.LENGTH_LONG).show();
@@ -152,17 +159,17 @@ public class MainActivity extends ActionBarActivity{
                     }
              })
             .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
-                    @Override
-                    public void onConnectionFailed(ConnectionResult result) {
-                  // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
-                        // onConnectionFailed.
-                  Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
-                  Toast.makeText(MainActivity.this, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode(),
-                    Toast.LENGTH_LONG).show();
-                  Dialog dialog = GooglePlayServicesUtil.getErrorDialog(result.getErrorCode(), MainActivity.this, 1);
-                  dialog.show();
-                    }
-             })
+                @Override
+                public void onConnectionFailed(ConnectionResult result) {
+                    // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
+                    // onConnectionFailed.
+                    Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
+                    Toast.makeText(MainActivity.this, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode(),
+                            Toast.LENGTH_LONG).show();
+                    Dialog dialog = GooglePlayServicesUtil.getErrorDialog(result.getErrorCode(), MainActivity.this, 1);
+                    dialog.show();
+                }
+            })
             .addApi(LocationServices.API)
             .build();
         Log.i(TAG, "mGoogleApiClient initializing...");
@@ -171,6 +178,43 @@ public class MainActivity extends ActionBarActivity{
         Log.i(TAG, "mGoogleApiClient Start Connecting...");
         Toast.makeText(this, "mGoogleApiClient Start Connecting...", Toast.LENGTH_LONG).show();
 
+    }
+
+    protected void startIntentService() {
+        Intent intent = new Intent(MainActivity.this, FetchAddressIntentService.class);
+        intent.putExtra(Constants.RECEIVER, mResultReceiver);
+        intent.putExtra(Constants.LOCATION_DATA_EXTRA, mLastLocation);
+        startService(intent);
+    }
+
+    public class AddressResultReceiver extends ResultReceiver{
+        protected String mAddressOutput;
+
+        public String getAddressOutput() {
+            return mAddressOutput;
+        }
+
+        public void setAddressOutput(String addressOutput) {
+            mAddressOutput = addressOutput;
+        }
+
+        /**
+         * Create a new ResultReceive to receive results.  Your
+         * {@link #onReceiveResult} method will be called from the thread running
+         * <var>handler</var> if given, or from an arbitrary thread if null.
+         *
+         * @param handler
+         */
+        public AddressResultReceiver(Handler handler) {
+            super(handler);
+        }
+
+        protected void onReceiveResult(int resultCode, Bundle resultData){
+            mResultReceiver.setAddressOutput(resultData.getString(Constants.RESULT_DATA_KEY));
+            if (resultCode == Constants.SUCCESS_RESULT) {
+                Toast.makeText(MainActivity.this, "Address found!", Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     /*@Override
