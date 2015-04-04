@@ -30,11 +30,12 @@ import java.io.IOException;
 public class MainActivity extends ActionBarActivity{
 
     public static final String TAG = MainActivity.class.getSimpleName();
-    private CurrentWeather mCurrentWeather;
+    protected static final String apiKey = "9131be663489e1f48549c9e550d00b38";
+    protected CurrentWeather mCurrentWeather;
     protected GoogleApiClient mGoogleApiClient;
     protected Location mLastLocation;
-    protected double latitude = 37.8267;
-    protected double longitude = -122.423;
+    protected double latitude;
+    protected double longitude;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,52 +43,12 @@ public class MainActivity extends ActionBarActivity{
         setContentView(R.layout.activity_main);
 
         //Create the API to Forecast Server
-        String apiKey = "9131be663489e1f48549c9e550d00b38";
         //double latitude = 65.9667;//37.8267;
         //double longitude = -18.5333;//-122.423;
 
         if(isNetworkAvailable()) {
             buildGoogleApiClient();
-            Log.d(TAG, String.valueOf(latitude));
-            Log.d(TAG, String.valueOf(longitude));
-            TextView latitudeTextView = (TextView) findViewById(R.id.locationLabel);
-            latitudeTextView.setText(String.valueOf(latitude));
-            String forecastUrl = "https://api.forecast.io/forecast/"+apiKey+"/"+latitude+","+longitude;
-            OkHttpClient client = new OkHttpClient();
 
-            Toast.makeText(this, "Initializing okhttp client...", Toast.LENGTH_LONG).show();
-            Log.i(TAG, "Initializing okhttp client...");
-
-            Request request = new Request.Builder().url(forecastUrl).build();
-            Call call = client.newCall(request);
-            //Transfer synchronous to asynchronous
-            call.enqueue(new Callback() {
-                @Override
-                public void onFailure(Request request, IOException e) {
-
-                }
-
-                @Override
-                public void onResponse(Response response) throws IOException {
-                    try {
-                        // execute() is synchronous method, so delete it
-                        // Response response = call.execute();
-                        String jsonData = response.body().string();
-                        Log.v(TAG, jsonData);
-                        if (response.isSuccessful()) {
-                            mCurrentWeather = getCurrentDetails(jsonData);
-                        } else {
-                            alertUserAboutError();
-                        }
-                    }
-                    catch (IOException e) {
-                        Log.e(TAG, "Exception caught: ", e);
-                    }
-                    catch (JSONException e){
-                        Log.e(TAG, "Exception caught: ", e);
-                    }
-                }
-            });
         }
         else {
             Toast.makeText(this, getString(R.string.network_unavailable_message), Toast.LENGTH_LONG).show();
@@ -160,19 +121,57 @@ public class MainActivity extends ActionBarActivity{
                         if (mLastLocation != null) {
                             latitude = mLastLocation.getLatitude();
                             longitude = mLastLocation.getLongitude();
-                            Log.i(TAG, "mGoogleApiClient Connected.");
+
                             Toast.makeText(MainActivity.this, "mGoogleApiClient Connected.", Toast.LENGTH_LONG).show();
-                            Log.i(TAG, String.valueOf(latitude));
-                            Log.i(TAG, String.valueOf(longitude));
+                            TextView latitudeTextView = (TextView) findViewById(R.id.locationLabel);
+                            latitudeTextView.setText(String.valueOf(latitude));
+                            Toast.makeText(MainActivity.this, String.valueOf(longitude), Toast.LENGTH_LONG).show();
+                            String forecastUrl = "https://api.forecast.io/forecast/"+apiKey+"/"+latitude+","+longitude;
+
+                            OkHttpClient client = new OkHttpClient();
+                            Toast.makeText(MainActivity.this, "Initializing okhttp client...", Toast.LENGTH_LONG).show();
+
+                            Request request = new Request.Builder().url(forecastUrl).build();
+                            Call call = client.newCall(request);
+                            //Transfer synchronous to asynchronous
+                            call.enqueue(new Callback() {
+                                @Override
+                                public void onFailure(Request request, IOException e) {
+
+                                }
+
+                                @Override
+                                public void onResponse(Response response) throws IOException {
+                                    try {
+                                        // execute() is synchronous method, so delete it
+                                        // Response response = call.execute();
+                                        String jsonData = response.body().string();
+                                        Log.v(TAG, jsonData);
+                                        if (response.isSuccessful()) {
+                                            mCurrentWeather = getCurrentDetails(jsonData);
+                                        } else {
+                                            alertUserAboutError();
+                                        }
+                                    }
+                                    catch (IOException e) {
+                                        Log.e(TAG, "Exception caught: ", e);
+                                    }
+                                    catch (JSONException e){
+                                        Log.e(TAG, "Exception caught: ", e);
+                                    }
+                                }
+                            });
+
                         } else {
                             Toast.makeText(MainActivity.this, "No location detected", Toast.LENGTH_LONG).show();
                         }
                     }
+
+
                     @Override
                     public void onConnectionSuspended(int cause) {
                         // The connection to Google Play services was lost for some reason. We call connect() to
                         // attempt to re-establish the connection.
-                        Log.i(TAG, "Connection suspended");
                         Toast.makeText(MainActivity.this, "Connection suspended", Toast.LENGTH_LONG).show();
                         mGoogleApiClient.connect();
 
@@ -215,51 +214,6 @@ public class MainActivity extends ActionBarActivity{
             mGoogleApiClient.disconnect();
         }
     }*/
-
-    /**
-     * Runs when a GoogleApiClient object successfully connects.
-     */
-
-    /*
-    @Override
-    public void onConnected(Bundle connectionHint) {
-        // Provides a simple way of getting a device's location and is well suited for
-        // applications that do not require a fine-grained location and that do not need location
-        // updates. Gets the best and most recent location currently available, which may be null
-        // in rare cases when a location is not available.
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        if (mLastLocation != null) {
-            latitude = mLastLocation.getLatitude();
-            longitude = mLastLocation.getLongitude();
-            Log.i(TAG, "mGoogleApiClient Connected.");
-            Toast.makeText(this, "mGoogleApiClient Connected.", Toast.LENGTH_LONG).show();
-            Log.i(TAG, String.valueOf(latitude));
-            Log.i(TAG, String.valueOf(longitude));
-        } else {
-            Toast.makeText(this, "No location detected", Toast.LENGTH_LONG).show();
-        }
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult result) {
-        // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
-        // onConnectionFailed.
-        Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
-        Toast.makeText(this, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode(),
-                Toast.LENGTH_LONG).show();
-        Dialog dialog = GooglePlayServicesUtil.getErrorDialog(result.getErrorCode(), this, 1);
-        dialog.show();
-    }
-
-    @Override
-    public void onConnectionSuspended(int cause) {
-        // The connection to Google Play services was lost for some reason. We call connect() to
-        // attempt to re-establish the connection.
-        Log.i(TAG, "Connection suspended");
-        Toast.makeText(this, "Connection suspended", Toast.LENGTH_LONG).show();
-        mGoogleApiClient.connect();
-    }
-    */
 
 }
 
