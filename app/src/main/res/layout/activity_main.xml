@@ -23,7 +23,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="[location]"
+        android:text="--"
         android:id="@+id/locationLabel"
         android:layout_above="@+id/timeLabel"
         android:layout_centerHorizontal="true"
@@ -34,7 +34,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="At [h:mm AM/PM] it will be"
+        android:text="At -- it will be"
         android:id="@+id/timeLabel"
         android:layout_above="@+id/degreeImageView"
         android:layout_centerHorizontal="true"
@@ -44,12 +44,12 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="[99]"
+        android:text="--"
         android:id="@+id/temperatureLabel"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
         android:textColor="@android:color/white"
-        android:textSize="150sp"/>
+        android:textSize="150sp"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"/>
 
     <ImageView
         android:layout_width="wrap_content"
@@ -87,8 +87,32 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="[9.99]"
+                android:text="--"
                 android:id="@+id/humidityValue"
+                android:textColor="@android:color/white"
+                android:textSize="24sp"
+                android:gravity="center_horizontal"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="WINDSPEED"
+                android:id="@+id/windspeedLabel"
+                android:textColor="#80ffffff"
+                android:gravity="center_horizontal"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="--"
+                android:id="@+id/windspeedValue"
                 android:textColor="@android:color/white"
                 android:textSize="24sp"
                 android:gravity="center_horizontal"/>
@@ -111,7 +135,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="[999%]"
+                android:text="--"
                 android:id="@+id/precipValue"
                 android:textColor="@android:color/white"
                 android:textSize="24sp"
@@ -122,7 +146,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="[Stormy with a chance of meatballs]"
+        android:text="--"
         android:id="@+id/summaryTextView"
         android:layout_below="@+id/linearLayout"
         android:layout_centerHorizontal="true"
@@ -130,6 +154,16 @@
         android:textColor="@android:color/white"
         android:textSize="18sp"
         android:gravity="center_horizontal"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="Location"
+        android:id="@+id/locationText"
+        android:layout_above="@+id/locationLabel"
+        android:layout_centerHorizontal="true"
+        android:textColor="#80ffffff"/>
 
 
 </RelativeLayout>

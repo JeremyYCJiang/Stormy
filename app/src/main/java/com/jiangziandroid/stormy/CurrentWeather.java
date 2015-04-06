@@ -3,7 +3,6 @@ package com.jiangziandroid.stormy;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
-
 /**
  * Created by JeremyYCJiang on 2015/4/2.
  */
@@ -15,6 +14,9 @@ public class CurrentWeather {
     private double mPrecipChance;
     private String mSummary;
     private String mTimeZone;
+    private double latitude;
+    private double longitude;
+    private double windspeed;
 
 
 
@@ -85,24 +87,25 @@ public class CurrentWeather {
         return mTemperature;
     }
 
-    public double getCelsiusTemperature(){
-        return (getTemperature()-32)*5/9;
+    public int getCelsiusTemperature(){
+        double CelsiusTempereture = (getTemperature()-32)*5/9;
+        return (int)Math.round(CelsiusTempereture);
     }
 
     public void setTemperature(double temperature) {
         mTemperature = temperature;
     }
 
-    public double getHumidity() {
-        return mHumidity;
+    public int getHumidity() {
+        return (int)Math.round(mHumidity*100);
     }
 
     public void setHumidity(double humidity) {
         mHumidity = humidity;
     }
 
-    public double getPrecipChance() {
-        return mPrecipChance;
+    public int getPrecipChance() {
+        return (int)Math.round(mPrecipChance*100);
     }
 
     public void setPrecipChance(double precipChance) {
@@ -123,5 +126,29 @@ public class CurrentWeather {
 
     public void setTimeZone(String timeZone) {
         mTimeZone = timeZone;
+    }
+
+    public double getLatitude() {
+        return (double)Math.round(latitude*10)/(double)10;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return (double)Math.round(longitude*10)/(double)10;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public double getWindspeed() {
+        return windspeed;
+    }
+
+    public void setWindspeed(double windspeed) {
+        this.windspeed = windspeed;
     }
 }

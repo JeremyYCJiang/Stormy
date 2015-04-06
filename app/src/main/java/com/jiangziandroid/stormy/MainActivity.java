@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.ResultReceiver;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,6 +30,9 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
+import butterknife.ButterKnife;
+import butterknife.InjectView;
+
 
 public class MainActivity extends ActionBarActivity{
 
@@ -41,10 +45,23 @@ public class MainActivity extends ActionBarActivity{
     protected double latitude;
     protected double longitude;
 
+    //inject TextView and ImageView member variable.
+    @InjectView(R.id.weatherIconImageView)  ImageView mWeatherIconImageView;
+    @InjectView(R.id.timeLabel) TextView mTimeLabel;
+    @InjectView(R.id.temperatureLabel)  TextView mTemperatureLabel;
+    @InjectView(R.id.humidityValue) TextView mHumidityValue;
+    @InjectView(R.id.precipValue) TextView mPrecipValue;
+    @InjectView(R.id.summaryTextView)   TextView mSummaryTextView;
+    @InjectView(R.id.locationLabel) TextView mLocationTextView;
+    @InjectView(R.id.windspeedValue) TextView mWindspeedValue;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //Use ButterKnife to inject views into our Activity
+        ButterKnife.inject(this);
+
         if(isNetworkAvailable()) {
             buildGoogleApiClient();
         }
@@ -69,6 +86,9 @@ public class MainActivity extends ActionBarActivity{
             currentWeather.setPrecipChance(currently.getDouble("precipProbability"));
             currentWeather.setSummary(currently.getString("summary"));
             currentWeather.setTimeZone(forecast.getString("timezone"));
+            currentWeather.setLatitude(forecast.getDouble("latitude"));
+            currentWeather.setLongitude(forecast.getDouble("longitude"));
+            currentWeather.setWindspeed(currently.getDouble("windSpeed"));
             return currentWeather;
     }
 
@@ -103,20 +123,21 @@ public class MainActivity extends ActionBarActivity{
                         // updates. Gets the best and most recent location currently available, which may be null
                         // in rare cases when a location is not available.
                         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-                        if (mLastLocation != null) {
-                            mResultReceiver = new AddressResultReceiver(new Handler());
-                            startIntentService();
+                        mResultReceiver = new AddressResultReceiver(new Handler());
+                        startIntentService();
+                        if ( mLastLocation != null || mResultReceiver.getAddressOutput() != null) {
                             Toast.makeText(MainActivity.this, mResultReceiver.getAddressOutput(), Toast.LENGTH_LONG).show();
                             latitude = mLastLocation.getLatitude();
                             longitude = mLastLocation.getLongitude();
-                            Toast.makeText(MainActivity.this, "mGoogleApiClient Connected.", Toast.LENGTH_LONG).show();
-                            TextView latitudeTextView = (TextView) findViewById(R.id.locationLabel);
-                            latitudeTextView.setText(String.valueOf(latitude));
-                            Toast.makeText(MainActivity.this, String.valueOf(longitude), Toast.LENGTH_LONG).show();
+                            //Toast.makeText(MainActivity.this, "mGoogleApiClient Connected.", Toast.LENGTH_LONG).show();
+                            //TextView latitudeTextView = (TextView) findViewById(R.id.locationLabel);
+                            //latitudeTextView.setText(String.valueOf(latitude));
+                            Toast.makeText(MainActivity.this, String.valueOf(latitude)+" , "+String.valueOf(longitude),
+                                    Toast.LENGTH_LONG).show();
                             String forecastUrl = "https://api.forecast.io/forecast/"+apiKey+"/"+latitude+","+longitude;
 
                             OkHttpClient client = new OkHttpClient();
-                            Toast.makeText(MainActivity.this, "Initializing okhttp client...", Toast.LENGTH_LONG).show();
+                            //Toast.makeText(MainActivity.this, "Initializing okhttp client...", Toast.LENGTH_LONG).show();
                             Request request = new Request.Builder().url(forecastUrl).build();
                             Call call = client.newCall(request);
                             //Transfer synchronous to asynchronous
@@ -134,6 +155,12 @@ public class MainActivity extends ActionBarActivity{
                                         Log.v(TAG, jsonData);
                                         if (response.isSuccessful()) {
                                             mCurrentWeather = getCurrentDetails(jsonData);
+                                            runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    updateDisplay();
+                                                }
+                                            });
                                         } else {
                                             alertUserAboutError();
                                         }
@@ -173,12 +200,26 @@ public class MainActivity extends ActionBarActivity{
             .addApi(LocationServices.API)
             .build();
         Log.i(TAG, "mGoogleApiClient initializing...");
-        Toast.makeText(this, "mGoogleApiClient initializing...", Toast.LENGTH_LONG).show();
+        //Toast.makeText(this, "mGoogleApiClient initializing...", Toast.LENGTH_LONG).show();
         mGoogleApiClient.connect();
         Log.i(TAG, "mGoogleApiClient Start Connecting...");
-        Toast.makeText(this, "mGoogleApiClient Start Connecting...", Toast.LENGTH_LONG).show();
+        //Toast.makeText(this, "mGoogleApiClient Start Connecting...", Toast.LENGTH_LONG).show();
 
     }
+
+
+    private void updateDisplay() {
+        mTemperatureLabel.setText(String.valueOf(mCurrentWeather.getCelsiusTemperature()));
+        mTimeLabel.setText("At "+mCurrentWeather.getFormattedTime()+" it will be");
+        mHumidityValue.setText(mCurrentWeather.getHumidity()+"%");
+        mPrecipValue.setText(mCurrentWeather.getPrecipChance()+"%");
+        mSummaryTextView.setText(mCurrentWeather.getSummary());
+        mWeatherIconImageView.setImageResource(mCurrentWeather.getIconId());
+        mLocationTextView.setText(String.valueOf(mCurrentWeather.getLatitude())+" , "+
+                                  String.valueOf(mCurrentWeather.getLongitude()));
+        mWindspeedValue.setText(String.valueOf(mCurrentWeather.getWindspeed())+"m/s");
+    }
+
 
     protected void startIntentService() {
         Intent intent = new Intent(MainActivity.this, FetchAddressIntentService.class);
@@ -186,6 +227,7 @@ public class MainActivity extends ActionBarActivity{
         intent.putExtra(Constants.LOCATION_DATA_EXTRA, mLastLocation);
         startService(intent);
     }
+
 
     public class AddressResultReceiver extends ResultReceiver{
         protected String mAddressOutput;
