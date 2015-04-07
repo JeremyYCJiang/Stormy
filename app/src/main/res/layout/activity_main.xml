@@ -29,26 +29,41 @@
         android:layout_alignRight="@+id/refreshImageView"/>
 
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="Location"
+        android:id="@+id/locationText"
+        android:layout_below="@+id/refreshImageView"
+        android:layout_centerHorizontal="true"
+        android:textColor="#80ffffff"
+        android:layout_marginTop="20dp"/>
+
+
+
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/weatherIconImageView"
-        android:layout_alignBottom="@+id/locationLabel"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:src="@drawable/ic_launcher"
-        />
+        android:layout_alignTop="@+id/locationText"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="--"
         android:id="@+id/locationLabel"
-        android:layout_above="@+id/timeLabel"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="60dp"
+        android:layout_marginBottom="30dp"
         android:textColor="@android:color/white"
-        android:textSize="24sp"/>
+        android:textSize="16sp"
+        android:layout_below="@+id/locationText"
+        android:layout_above="@+id/timeLabel"
+        android:gravity="center_vertical|center_horizontal"
+        android:layout_marginTop="10dp"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -177,12 +192,12 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Location"
-        android:id="@+id/locationText"
-        android:layout_above="@+id/locationLabel"
+        android:text="Powered by Jiangzi"
+        android:id="@+id/JiangziTextView"
+        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:textColor="#80ffffff"/>
+        android:textColor="#80ffffff"
+        android:textSize="12sp"/>
 
 
 </RelativeLayout>

@@ -1,14 +1,10 @@
 package com.jiangziandroid.stormy;
 
-import android.app.Dialog;
 import android.content.Context;
-import android.content.Intent;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.ResultReceiver;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.View;
@@ -17,10 +13,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
+import com.amap.api.location.AMapLocation;
+import com.amap.api.location.AMapLocationListener;
+import com.amap.api.location.LocationManagerProxy;
+import com.amap.api.location.LocationProviderProxy;
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.OkHttpClient;
@@ -36,16 +32,17 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 
 
-public class MainActivity extends ActionBarActivity{
+public class MainActivity extends ActionBarActivity implements AMapLocationListener{
 
     public static final String TAG = MainActivity.class.getSimpleName();
     protected static final String apiKey = "9131be663489e1f48549c9e550d00b38";
     protected CurrentWeather mCurrentWeather;
-    protected GoogleApiClient mGoogleApiClient;
-    protected AddressResultReceiver mResultReceiver;
-    protected Location mLastLocation;
     protected double latitude;
     protected double longitude;
+    protected String address;
+    protected String city;
+    protected String district;
+    protected LocationManagerProxy mLocationManagerProxy;
 
     //inject TextView and ImageView member variable.
     @InjectView(R.id.weatherIconImageView)  ImageView mWeatherIconImageView;
@@ -72,34 +69,112 @@ public class MainActivity extends ActionBarActivity{
         mRefreshImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getForecast();
+                initLocate();
             }
         });
-
-        getForecast();
+        initLocate();
         Toast.makeText(this, "Main UI code is running!", Toast.LENGTH_LONG).show();
     }
 
-    private void getForecast() {
-        if(isNetworkAvailable()) {
-            toggleRefresh();
-            buildGoogleApiClient();
+
+    private void initLocate(){
+        if(isNetworkAvailable()){
+        toggleRefresh();
+        //根据给定的参数构造一个 LocationManagerProxy 的对象。
+        mLocationManagerProxy = LocationManagerProxy.getInstance(this);
+        //设置是否使用GPS定位，仅在使用 privoder 为 LocationProviderProxy.AMapNetwork 时生效。
+        mLocationManagerProxy.setGpsEnable(false);
+        // LocationProviderProxy:位置提供者，提供定期报告设备的地理位置。
+        // AMapNetwork:高德网络定位服务。
+        // 此方法为每隔固定时间会发起一次定位请求，为了减少电量消耗或网络流量消耗，
+        // 注意设置合适的定位时间的间隔（最小间隔支持为2000ms），并且在合适时间调用removeUpdates()方法来取消定位请求
+        // 在定位结束后，在合适的生命周期调用destroy()方法
+        // 其中如果间隔时间为-1，则定位只定一次,
+        // 在单次定位情况下，定位无论成功与否，都无需调用removeUpdates()方法移除请求，定位sdk内部会移除
+        //requestLocationData(java.lang.String provider, long minTime, float minDistance,
+        // AMapLocationListener listener)注册监听。
+        mLocationManagerProxy.requestLocationData(
+                LocationProviderProxy.AMapNetwork, -1, 15, this);
         }
         else {
             Toast.makeText(this, getString(R.string.network_unavailable_message), Toast.LENGTH_LONG).show();
         }
     }
 
-    private void toggleRefresh() {
-        if(mRefreshProgressBar.getVisibility() == View.INVISIBLE){
-            mRefreshProgressBar.setVisibility(View.VISIBLE);
-            mRefreshImageView.setVisibility(View.INVISIBLE);
+
+
+    //返回当前的定位位置，在 requestLocationData 条件满足时触发回调。
+    @Override
+    public void onLocationChanged(AMapLocation aMapLocation) {
+        if(aMapLocation!=null
+                && aMapLocation.getAMapException().getErrorCode() == 0){
+            // 定位成功回调信息，设置相关消息
+            latitude = aMapLocation.getLatitude();
+            longitude = aMapLocation.getLongitude();
+            address = aMapLocation.getAddress();
+            city = aMapLocation.getCity();
+            district = aMapLocation.getDistrict();
+            getForecast();
         }
         else{
-            mRefreshProgressBar.setVisibility(View.INVISIBLE);
-            mRefreshImageView.setVisibility(View.VISIBLE);
+            toggleRefresh();
+            Log.e("AmapErr","Location ERR:" + aMapLocation.getAMapException().getErrorCode());
+            Toast.makeText(this, "AmapErr: Location ERR:" + aMapLocation.getAMapException().getErrorCode(),
+                    Toast.LENGTH_LONG).show();
         }
     }
+
+    private void getForecast() {
+                String forecastUrl = "https://api.forecast.io/forecast/" + apiKey + "/" + latitude + "," + longitude;
+                OkHttpClient client = new OkHttpClient();
+                Request request = new Request.Builder().url(forecastUrl).build();
+                Call call = client.newCall(request);
+                //Transfer synchronous to asynchronous
+                call.enqueue(new Callback() {
+                    @Override
+                    public void onFailure(Request request, IOException e) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                toggleRefresh();
+                            }
+                        });
+                        alertUserAboutError();
+                    }
+
+                    @Override
+                    public void onResponse(Response response) throws IOException {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                toggleRefresh();
+                            }
+                        });
+                        try {
+                            // execute() is synchronous method, so delete it
+                            // Response response = call.execute();
+                            String jsonData = response.body().string();
+                            Log.v(TAG, jsonData);
+                            if (response.isSuccessful()) {
+                                mCurrentWeather = getCurrentDetails(jsonData);
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        updateDisplay();
+                                    }
+                                });
+                            } else {
+                                alertUserAboutError();
+                            }
+                        } catch (IOException e) {
+                            Log.e(TAG, "Exception caught: ", e);
+                        } catch (JSONException e) {
+                            Log.e(TAG, "Exception caught: ", e);
+                        }
+                    }
+
+                });
+            }
 
 
     private CurrentWeather getCurrentDetails(String jsonData) throws JSONException {
@@ -123,6 +198,21 @@ public class MainActivity extends ActionBarActivity{
     }
 
 
+    private void updateDisplay() {
+        mTemperatureLabel.setText(String.valueOf(mCurrentWeather.getCelsiusTemperature()));
+        mTimeLabel.setText("At "+mCurrentWeather.getFormattedTime()+" it will be");
+        mHumidityValue.setText(mCurrentWeather.getHumidity()+"%");
+        mPrecipValue.setText(mCurrentWeather.getPrecipChance()+"%");
+        mSummaryTextView.setText(mCurrentWeather.getSummary());
+        mWeatherIconImageView.setImageResource(mCurrentWeather.getIconId());
+        mLocationTextView.setText(String.valueOf(mCurrentWeather.getLatitude()) + " , " +
+                String.valueOf(mCurrentWeather.getLongitude())+'\n'+ city+" , "+district);
+        Toast.makeText(this, latitude + " , " +longitude, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, address, Toast.LENGTH_LONG).show();
+        mWindspeedValue.setText(String.valueOf(mCurrentWeather.getWindspeed())+"m/s");
+    }
+
+
     private boolean isNetworkAvailable() {
         ConnectivityManager manager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = manager.getActiveNetworkInfo();
@@ -133,6 +223,16 @@ public class MainActivity extends ActionBarActivity{
         return isAvailable;
     }
 
+    private void toggleRefresh() {
+        if(mRefreshProgressBar.getVisibility() == View.INVISIBLE){
+            mRefreshProgressBar.setVisibility(View.VISIBLE);
+            mRefreshImageView.setVisibility(View.INVISIBLE);
+        }
+        else{
+            mRefreshProgressBar.setVisibility(View.INVISIBLE);
+            mRefreshImageView.setVisibility(View.VISIBLE);
+        }
+    }
 
     private void alertUserAboutError() {
         AlertDialogFragment dialog = new AlertDialogFragment();
@@ -140,186 +240,25 @@ public class MainActivity extends ActionBarActivity{
     }
 
 
-    /**
-     * Builds a GoogleApiClient. Uses the addApi() method to request the LocationServices API.
-     */
-    protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-        .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
-            @Override
-            public void onConnected(Bundle connectionHint) {
-                        // Provides a simple way of getting a device's location and is well suited for
-                        // applications that do not require a fine-grained location and that do not need location
-                        // updates. Gets the best and most recent location currently available, which may be null
-                        // in rare cases when a location is not available.
-                        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-                        mResultReceiver = new AddressResultReceiver(new Handler());
-                        startIntentService();
-                        if ( mLastLocation != null || mResultReceiver.getAddressOutput() != null) {
-                            Toast.makeText(MainActivity.this, mResultReceiver.getAddressOutput(), Toast.LENGTH_LONG).show();
-                            latitude = mLastLocation.getLatitude();
-                            longitude = mLastLocation.getLongitude();
-                            //Toast.makeText(MainActivity.this, "mGoogleApiClient Connected.", Toast.LENGTH_LONG).show();
-                            //TextView latitudeTextView = (TextView) findViewById(R.id.locationLabel);
-                            //latitudeTextView.setText(String.valueOf(latitude));
-                            Toast.makeText(MainActivity.this, String.valueOf(latitude)+" , "+String.valueOf(longitude),
-                                    Toast.LENGTH_LONG).show();
-                            String forecastUrl = "https://api.forecast.io/forecast/"+apiKey+"/"+latitude+","+longitude;
+    @Override
+    public void onLocationChanged(Location location) {
 
-                            OkHttpClient client = new OkHttpClient();
-                            //Toast.makeText(MainActivity.this, "Initializing okhttp client...", Toast.LENGTH_LONG).show();
-                            Request request = new Request.Builder().url(forecastUrl).build();
-                            Call call = client.newCall(request);
-                            //Transfer synchronous to asynchronous
-                            call.enqueue(new Callback() {
-                                @Override
-                                public void onFailure(Request request, IOException e) {
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            toggleRefresh();
-                                        }
-                                    });
-                                    alertUserAboutError();
-                                }
-
-                                @Override
-                                public void onResponse(Response response) throws IOException {
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            toggleRefresh();
-                                        }
-                                    });
-                                    try {
-                                        // execute() is synchronous method, so delete it
-                                        // Response response = call.execute();
-                                        String jsonData = response.body().string();
-                                        Log.v(TAG, jsonData);
-                                        if (response.isSuccessful()) {
-                                            mCurrentWeather = getCurrentDetails(jsonData);
-                                            runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    updateDisplay();
-                                                }
-                                            });
-                                        } else {
-                                            alertUserAboutError();
-                                        }
-                                    }
-                                    catch (IOException e) {
-                                        Log.e(TAG, "Exception caught: ", e);
-                                    }
-                                    catch (JSONException e){
-                                        Log.e(TAG, "Exception caught: ", e);
-                                    }
-                                }
-                            });
-                        } else {
-                            toggleRefresh();
-                            Toast.makeText(MainActivity.this, "No location detected", Toast.LENGTH_LONG).show();
-                        }
-                    }
-            @Override
-            public void onConnectionSuspended(int cause) {
-                        // The connection to Google Play services was lost for some reason. We call connect() to
-                        // attempt to re-establish the connection.
-                        toggleRefresh();
-                        Toast.makeText(MainActivity.this, "Connection suspended", Toast.LENGTH_LONG).show();
-                        mGoogleApiClient.connect();
-                    }
-             })
-            .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
-                @Override
-                public void onConnectionFailed(ConnectionResult result) {
-                    // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
-                    // onConnectionFailed.
-                    toggleRefresh();
-                    Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
-                    Toast.makeText(MainActivity.this, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode(),
-                            Toast.LENGTH_LONG).show();
-                    Dialog dialog = GooglePlayServicesUtil.getErrorDialog(result.getErrorCode(), MainActivity.this, 1);
-                    dialog.show();
-                }
-            })
-            .addApi(LocationServices.API)
-            .build();
-        Log.i(TAG, "mGoogleApiClient initializing...");
-        //Toast.makeText(this, "mGoogleApiClient initializing...", Toast.LENGTH_LONG).show();
-        mGoogleApiClient.connect();
-        Log.i(TAG, "mGoogleApiClient Start Connecting...");
-        //Toast.makeText(this, "mGoogleApiClient Start Connecting...", Toast.LENGTH_LONG).show();
-
-    }
-
-
-    private void updateDisplay() {
-        mTemperatureLabel.setText(String.valueOf(mCurrentWeather.getCelsiusTemperature()));
-        mTimeLabel.setText("At "+mCurrentWeather.getFormattedTime()+" it will be");
-        mHumidityValue.setText(mCurrentWeather.getHumidity()+"%");
-        mPrecipValue.setText(mCurrentWeather.getPrecipChance()+"%");
-        mSummaryTextView.setText(mCurrentWeather.getSummary());
-        mWeatherIconImageView.setImageResource(mCurrentWeather.getIconId());
-        mLocationTextView.setText(String.valueOf(mCurrentWeather.getLatitude())+" , "+
-                                  String.valueOf(mCurrentWeather.getLongitude()));
-        mWindspeedValue.setText(String.valueOf(mCurrentWeather.getWindspeed())+"m/s");
-    }
-
-
-    protected void startIntentService() {
-        Intent intent = new Intent(MainActivity.this, FetchAddressIntentService.class);
-        intent.putExtra(Constants.RECEIVER, mResultReceiver);
-        intent.putExtra(Constants.LOCATION_DATA_EXTRA, mLastLocation);
-        startService(intent);
-    }
-
-
-    public class AddressResultReceiver extends ResultReceiver{
-        protected String mAddressOutput;
-
-        public String getAddressOutput() {
-            return mAddressOutput;
-        }
-
-        public void setAddressOutput(String addressOutput) {
-            mAddressOutput = addressOutput;
-        }
-
-        /**
-         * Create a new ResultReceive to receive results.  Your
-         * {@link #onReceiveResult} method will be called from the thread running
-         * <var>handler</var> if given, or from an arbitrary thread if null.
-         *
-         * @param handler
-         */
-        public AddressResultReceiver(Handler handler) {
-            super(handler);
-        }
-
-        protected void onReceiveResult(int resultCode, Bundle resultData){
-            mResultReceiver.setAddressOutput(resultData.getString(Constants.RESULT_DATA_KEY));
-            if (resultCode == Constants.SUCCESS_RESULT) {
-                Toast.makeText(MainActivity.this, "Address found!", Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
-    /*@Override
-    protected void onStart() {
-        super.onStart();
-        mGoogleApiClient.connect();
-        Log.i(TAG, "mGoogleApiClient Start Connecting...");
-        Toast.makeText(this, "mGoogleApiClient Start Connecting...", Toast.LENGTH_LONG).show();
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        if (mGoogleApiClient.isConnected()) {
-            mGoogleApiClient.disconnect();
-        }
-    }*/
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
 
 }
 
