@@ -11,7 +11,9 @@ import android.os.Handler;
 import android.os.ResultReceiver;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -54,6 +56,9 @@ public class MainActivity extends ActionBarActivity{
     @InjectView(R.id.summaryTextView)   TextView mSummaryTextView;
     @InjectView(R.id.locationLabel) TextView mLocationTextView;
     @InjectView(R.id.windspeedValue) TextView mWindspeedValue;
+    @InjectView(R.id.refreshImageView) ImageView mRefreshImageView;
+    @InjectView(R.id.refreshProgressBar)    ProgressBar mRefreshProgressBar;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,13 +67,38 @@ public class MainActivity extends ActionBarActivity{
         //Use ButterKnife to inject views into our Activity
         ButterKnife.inject(this);
 
+        mRefreshProgressBar.setVisibility(View.INVISIBLE);
+
+        mRefreshImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getForecast();
+            }
+        });
+
+        getForecast();
+        Toast.makeText(this, "Main UI code is running!", Toast.LENGTH_LONG).show();
+    }
+
+    private void getForecast() {
         if(isNetworkAvailable()) {
+            toggleRefresh();
             buildGoogleApiClient();
         }
         else {
             Toast.makeText(this, getString(R.string.network_unavailable_message), Toast.LENGTH_LONG).show();
         }
-        Toast.makeText(this, "Main UI code is running!", Toast.LENGTH_LONG).show();
+    }
+
+    private void toggleRefresh() {
+        if(mRefreshProgressBar.getVisibility() == View.INVISIBLE){
+            mRefreshProgressBar.setVisibility(View.VISIBLE);
+            mRefreshImageView.setVisibility(View.INVISIBLE);
+        }
+        else{
+            mRefreshProgressBar.setVisibility(View.INVISIBLE);
+            mRefreshImageView.setVisibility(View.VISIBLE);
+        }
     }
 
 
@@ -144,10 +174,23 @@ public class MainActivity extends ActionBarActivity{
                             call.enqueue(new Callback() {
                                 @Override
                                 public void onFailure(Request request, IOException e) {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            toggleRefresh();
+                                        }
+                                    });
+                                    alertUserAboutError();
                                 }
 
                                 @Override
                                 public void onResponse(Response response) throws IOException {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            toggleRefresh();
+                                        }
+                                    });
                                     try {
                                         // execute() is synchronous method, so delete it
                                         // Response response = call.execute();
@@ -174,6 +217,7 @@ public class MainActivity extends ActionBarActivity{
                                 }
                             });
                         } else {
+                            toggleRefresh();
                             Toast.makeText(MainActivity.this, "No location detected", Toast.LENGTH_LONG).show();
                         }
                     }
@@ -181,6 +225,7 @@ public class MainActivity extends ActionBarActivity{
             public void onConnectionSuspended(int cause) {
                         // The connection to Google Play services was lost for some reason. We call connect() to
                         // attempt to re-establish the connection.
+                        toggleRefresh();
                         Toast.makeText(MainActivity.this, "Connection suspended", Toast.LENGTH_LONG).show();
                         mGoogleApiClient.connect();
                     }
@@ -190,6 +235,7 @@ public class MainActivity extends ActionBarActivity{
                 public void onConnectionFailed(ConnectionResult result) {
                     // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
                     // onConnectionFailed.
+                    toggleRefresh();
                     Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
                     Toast.makeText(MainActivity.this, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode(),
                             Toast.LENGTH_LONG).show();

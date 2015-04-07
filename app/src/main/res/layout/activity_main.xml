@@ -13,6 +13,25 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:id="@+id/refreshImageView"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/refresh"/>
+
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/refreshProgressBar"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_alignBottom="@+id/refreshImageView"
+        android:layout_alignLeft="@+id/refreshImageView"
+        android:layout_alignRight="@+id/refreshImageView"/>
+
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:id="@+id/weatherIconImageView"
         android:layout_alignBottom="@+id/locationLabel"
         android:layout_alignParentLeft="true"
