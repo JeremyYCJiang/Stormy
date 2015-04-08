@@ -1,10 +1,12 @@
-package com.jiangziandroid.stormy;
+package com.jiangziandroid.stormy.ui;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.os.Bundle;
+
+import com.jiangziandroid.stormy.R;
 
 /**
  * Created by JeremyYCJiang on 2015/4/1.
