@@ -1,6 +1,7 @@
 package com.jiangziandroid.stormy.ui;
 
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -36,6 +37,7 @@ import java.io.IOException;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import butterknife.OnClick;
 
 
 public class MainActivity extends ActionBarActivity implements AMapLocationListener{
@@ -317,5 +319,10 @@ public class MainActivity extends ActionBarActivity implements AMapLocationListe
 
     }
 
+    @OnClick(R.id.dailyButton)
+    public void startDailyActivity(View view){
+        Intent intent = new Intent(this, DailyForecastActivity.class);
+        startActivity(intent);
+    }
 }
 
