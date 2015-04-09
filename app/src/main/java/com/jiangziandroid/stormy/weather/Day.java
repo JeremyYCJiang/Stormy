@@ -1,7 +1,5 @@
 package com.jiangziandroid.stormy.weather;
 
-import com.jiangziandroid.stormy.R;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
@@ -20,15 +18,6 @@ public class Day {
 
     public long getTime() {
         return mTime;
-    }
-
-    //Convert UNIX time to readable time
-    public String getFormattedTime(){
-        SimpleDateFormat formatter = new SimpleDateFormat("h:mm a");
-        formatter.setTimeZone(TimeZone.getTimeZone(getTimeZone()));
-        Date dateTime = new Date(getTime()*1000);
-        String timeString = formatter.format(dateTime);
-        return timeString;
     }
 
     public void setTime(long time) {
@@ -60,56 +49,41 @@ public class Day {
     }
 
     public int getIconId(){
-        //clear-day, clear-night, rain, snow, sleet, wind, fog, cloudy, partly-cloudy-day, partly-cloudy-night
-        int iconId = R.drawable.clear_day;
-
-        if (mIcon.equals("clear-day")) {
-            iconId = R.drawable.clear_day;
-        }
-        else if (mIcon.equals("clear-night")) {
-            iconId = R.drawable.clear_night;
-        }
-        else if (mIcon.equals("rain")) {
-            iconId = R.drawable.rain;
-        }
-        else if (mIcon.equals("snow")) {
-            iconId = R.drawable.snow;
-        }
-        else if (mIcon.equals("sleet")) {
-            iconId = R.drawable.sleet;
-        }
-        else if (mIcon.equals("wind")) {
-            iconId = R.drawable.wind;
-        }
-        else if (mIcon.equals("fog")) {
-            iconId = R.drawable.fog;
-        }
-        else if (mIcon.equals("cloudy")) {
-            iconId = R.drawable.cloudy;
-        }
-        else if (mIcon.equals("partly-cloudy-day")) {
-            iconId = R.drawable.partly_cloudy;
-        }
-        else if (mIcon.equals("partly-cloudy-night")) {
-            iconId = R.drawable.cloudy_night;
-        }
-
-        return iconId;
+       return Forecast.getIconId(mIcon);
     }
 
     public double getTemperatureMax() {
         return mTemperatureMax;
     }
 
+    public int getCelsiusTemperatureMax(){
+        double CelsiusTempereture = (getTemperatureMax()-32)*5/9;
+        return (int)Math.round(CelsiusTempereture);
+    }
+
     public void setTemperatureMax(double temperatureMax) {
         mTemperatureMax = temperatureMax;
     }
+
+
 
     public double getTemperatureMin() {
         return mTemperatureMin;
     }
 
+    public int getCelsiusTemperatureMin(){
+        double CelsiusTempereture = (getTemperatureMin()-32)*5/9;
+        return (int)Math.round(CelsiusTempereture);
+    }
+
     public void setTemperatureMin(double temperatureMin) {
         mTemperatureMin = temperatureMin;
+    }
+
+    public String getDayOfTheWeek() {
+        SimpleDateFormat formatter = new SimpleDateFormat("EEEE");
+        formatter.setTimeZone(TimeZone.getTimeZone(mTimezone));
+        Date dateTime = new Date(mTime*1000);
+        return formatter.format(dateTime);
     }
 }
