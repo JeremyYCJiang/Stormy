@@ -7,7 +7,7 @@
                 android:paddingTop="@dimen/activity_vertical_margin"
                 android:paddingBottom="@dimen/activity_vertical_margin"
                 tools:context=".MainActivity"
-                android:background="#ffffb415">
+                android:background="@drawable/bg_gradient">
 
 
     <ImageView
@@ -184,7 +184,7 @@
         android:id="@+id/summaryTextView"
         android:layout_below="@+id/linearLayout"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="20dp"
         android:textColor="@android:color/white"
         android:textSize="18sp"
         android:gravity="center_horizontal"/>
@@ -198,6 +198,34 @@
         android:layout_centerHorizontal="true"
         android:textColor="#80ffffff"
         android:textSize="12sp"/>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/JiangziTextView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="10dp">
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="HOURLY"
+            android:id="@+id/hourlyButton"
+            android:layout_weight="1"
+            android:background="#40ffffff"
+            android:textColor="#ffffffff"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="DAILY"
+            android:id="@+id/dailyButton"
+            android:layout_weight="1"
+            android:background="#40ffffff"
+            android:textColor="@android:color/white"
+            android:layout_marginLeft="2dp"/>
+    </LinearLayout>
 
 
 </RelativeLayout>
