@@ -43,6 +43,7 @@ import butterknife.OnClick;
 public class MainActivity extends ActionBarActivity implements AMapLocationListener{
 
     public static final String TAG = MainActivity.class.getSimpleName();
+    public static final String DAILY_FORECAST = "DAILY FORECAST";
     protected static final String apiKey = "9131be663489e1f48549c9e550d00b38";
     protected Forecast mForecast;
     protected double latitude;
@@ -322,6 +323,9 @@ public class MainActivity extends ActionBarActivity implements AMapLocationListe
     @OnClick(R.id.dailyButton)
     public void startDailyActivity(View view){
         Intent intent = new Intent(this, DailyForecastActivity.class);
+        //Pass data to DailyForecatActivity
+        intent.putExtra(DAILY_FORECAST, mForecast.getDailyForecast());
+        intent.putExtra("ADDRESS", address);
         startActivity(intent);
     }
 }
