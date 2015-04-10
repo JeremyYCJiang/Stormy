@@ -4,7 +4,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 tools:background="#ffaa00"
-                android:paddingLeft="64dp"
+                android:paddingLeft="32dp"
                 android:paddingRight="32dp"
                 android:paddingTop="4dp"
                 android:paddingBottom="4dp">
@@ -12,19 +12,50 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/circleImageView"
+        android:id="@+id/circleImageViewMax"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:src="@drawable/bg_temperature"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/temperatureLabelMax"
+        tools:text="100"
+        android:layout_alignBottom="@+id/circleImageViewMax"
+        android:layout_alignTop="@+id/circleImageViewMax"
+        android:layout_alignLeft="@+id/circleImageViewMax"
+        android:layout_alignRight="@+id/circleImageViewMax"
+        android:gravity="center"
+        android:textColor="#fff25019"/>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/circleImageViewMin"
+        android:layout_toRightOf="@+id/circleImageViewMax"
+        android:src="@drawable/bg_temperature"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/temperatureLabelMin"
+        tools:text="100"
+        android:layout_alignBottom="@+id/circleImageViewMin"
+        android:layout_alignTop="@+id/circleImageViewMin"
+        android:layout_alignLeft="@+id/circleImageViewMin"
+        android:layout_alignRight="@+id/circleImageViewMin"
+        android:gravity="center"
+        android:textColor="#ff3845f2"/>
 
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/iconImageView"
         android:layout_alignParentTop="true"
-        android:layout_toRightOf="@+id/circleImageView"
-        android:layout_toEndOf="@+id/circleImageView"
+        android:layout_toRightOf="@+id/circleImageViewMin"
+        android:layout_toEndOf="@+id/circleImageViewMin"
         android:paddingLeft="10dp"
         android:src="@drawable/ic_launcher"/>
 
@@ -40,15 +71,5 @@
         android:paddingLeft="10dp"
         tools:text="Whatday?"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/temperatureLabel"
-        tools:text="100"
-        android:layout_alignBottom="@+id/circleImageView"
-        android:layout_alignTop="@+id/circleImageView"
-        android:layout_alignLeft="@+id/circleImageView"
-        android:layout_alignRight="@+id/circleImageView"
-        android:gravity="center"
-        android:textColor="#fff25019"/>
+
 </RelativeLayout>

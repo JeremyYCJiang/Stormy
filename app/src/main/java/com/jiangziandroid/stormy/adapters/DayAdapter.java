@@ -50,7 +50,8 @@ public class DayAdapter extends BaseAdapter {
             viewHolder = new ViewHolder();
             viewHolder.iconImageView = (ImageView) convertView.findViewById(R.id.iconImageView);
             viewHolder.dayNameLabel = (TextView) convertView.findViewById(R.id.dayNameLabel);
-            viewHolder.temperatureLabel = (TextView) convertView.findViewById(R.id.temperatureLabel);
+            viewHolder.temperatureLabelMax = (TextView) convertView.findViewById(R.id.temperatureLabelMax);
+            viewHolder.temperatureLabelMin = (TextView) convertView.findViewById(R.id.temperatureLabelMin);
             convertView.setTag(viewHolder);
         }
         else {
@@ -59,7 +60,8 @@ public class DayAdapter extends BaseAdapter {
 
         Day day = mDays[position];
         viewHolder.iconImageView.setImageResource(day.getIconId());
-        viewHolder.temperatureLabel.setText(String.valueOf(day.getCelsiusTemperatureMax()));
+        viewHolder.temperatureLabelMax.setText(String.valueOf(day.getCelsiusTemperatureMax()));
+        viewHolder.temperatureLabelMin.setText(String.valueOf(day.getCelsiusTemperatureMin()));
         if(position==0){
             viewHolder.dayNameLabel.setText("今天");
         }else {
@@ -71,6 +73,7 @@ public class DayAdapter extends BaseAdapter {
     private static class ViewHolder{
         ImageView iconImageView;
         TextView dayNameLabel;
-        TextView temperatureLabel;
+        TextView temperatureLabelMax;
+        TextView temperatureLabelMin;
     }
 }
