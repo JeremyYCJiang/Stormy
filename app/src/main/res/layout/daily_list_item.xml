@@ -3,7 +3,7 @@
                 xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                tools:background="#ffaa00"
+                tools:background="@drawable/bg_gradient"
                 android:paddingLeft="32dp"
                 android:paddingRight="32dp"
                 android:paddingTop="4dp"
@@ -57,7 +57,9 @@
         android:layout_toRightOf="@+id/circleImageViewMin"
         android:layout_toEndOf="@+id/circleImageViewMin"
         android:paddingLeft="10dp"
-        android:src="@drawable/ic_launcher"/>
+        android:src="@drawable/ic_launcher"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -67,7 +69,7 @@
         android:layout_toRightOf="@+id/iconImageView"
         android:layout_toEndOf="@+id/iconImageView"
         android:textColor="@android:color/white"
-        android:textSize="20sp"
+        android:textSize="16sp"
         android:paddingLeft="10dp"
         tools:text="Whatday?"/>
 

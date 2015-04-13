@@ -41,8 +41,11 @@ public class DayAdapter extends BaseAdapter {
 
 
     //called to create the layout for each item being adapted
+
+    //data mapping code
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        //ViewHolder is a best practice.
         ViewHolder viewHolder;
         if(convertView == null){
             //brand new
@@ -70,6 +73,7 @@ public class DayAdapter extends BaseAdapter {
         return convertView;
     }
 
+    //just views
     private static class ViewHolder{
         ImageView iconImageView;
         TextView dayNameLabel;
