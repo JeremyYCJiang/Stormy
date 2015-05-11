@@ -41,8 +41,7 @@ public class Current {
         SimpleDateFormat formatter = new SimpleDateFormat("h:mm a");
         formatter.setTimeZone(TimeZone.getTimeZone(getTimeZone()));
         Date dateTime = new Date(getTime()*1000);
-        String timeString = formatter.format(dateTime);
-        return timeString;
+        return formatter.format(dateTime);
     }
 
     public void setTime(long time) {
